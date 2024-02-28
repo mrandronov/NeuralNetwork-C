@@ -30,11 +30,11 @@ A 'Makefile' is provided. To build, run:
 ```
 > make
 ```
-And a 'main' executable should be produced.
+A 'main' executable should be produced.
 
 ## Execution
 
-> NOTE: Make sure the data folder has two `.csv` files: `mnist_test.csv` and `mnist_train.csv`. If the files are not there or are named incorrectly, the program will complain that it cannot find the training and testing data.
+> NOTE: Make sure you have a folder named 'data' that has two `.csv` files, `mnist_test.csv` and `mnist_train.csv`, in the same directory that you execute 'main'. These are the csv files that should contain the testing and training data respectively. If the files are not there or are named incorrectly, the program will complain that it cannot find the training and testing data.
 
 Simple run the main executable:
 
@@ -48,5 +48,5 @@ Ideas for improvements that I have been thinking of:
 
 - [ ] First off, get the network to train and try to achieve 94% accuracy with the MNIST data set.
 - [ ] Determine a better way to test the network.
-- [ ] Package the matrix functions in to a shared library for future use.
+- [ ] Package the matrix functions into a shared library for future use.
 
