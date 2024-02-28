@@ -35,5 +35,13 @@ all: $(OBJS)
 
 .PHONY: clean
 clean:
-	@rm -r main $(BUILD_DIR)
+	@echo "Cleaning build directory..."
+	@if [ -d $(BUILD_DIR) ]; then \
+		rm -r $(BUILD_DIR); \
+	fi 
+	@echo "Cleaning target executable..."
+	@if [ -f $(TARGET) ]; then \
+		rm $(TARGET);\
+	fi
+	@echo "$(CC_BLUE)Done!$(CC_END)"
 
