@@ -4,7 +4,10 @@ CC := gcc
 
 SRC_DIR := ./src
 BUILD_DIR := ./build
+
 DATA_DIR := ./data
+TRAINING_FILE := "mnist_train.csv"
+TESTING_FILE := "mnist_test.csv"
 
 SRCS := $(shell find $(SRC_DIR)/* -name '*.c')
 OBJS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SRCS:.c=.o))
@@ -29,9 +32,15 @@ all: $(OBJS)
 		echo "$(CC_YELLOW)WARNING:$(CC_END) Include training and test data in .csv format in ./data folder!"; \
 		mkdir ./data; \
 	fi
+	@if ! [ -f $(DATA_DIR)/$(TRAINING_FILE) ]; then \
+		echo "$(CC_YELLOW)WARNING:$(CC_END) Training data in $(DATA_DIR) folder is missing! Please include a .csv file called $(TRAINING_FILE) in the $(DATA_DIR) directory containing the training data for the network!"; \
+	fi
+	@if ! [ -f $(DATA_DIR)/$(TESTING_FILE) ]; then \
+		echo "$(CC_YELLOW)WARNING:$(CC_END) Testing data in $(DATA_DIR) folder is missing! Please include a .csv file called $(TESTING_FILE) in the $(DATA_DIR) directory containing the testing data for the network!"; \
+	fi
 
 	$(CC) $(CFLAGS) $(INC_FLAGS) -o $(TARGET) $^
-	@echo "$(CC_GREEN)Done!$(CC_END)"
+	@echo "$(CC_GREEN)Build done!$(CC_END)"
 
 .PHONY: clean
 clean:
@@ -43,5 +52,5 @@ clean:
 	@if [ -f $(TARGET) ]; then \
 		rm $(TARGET);\
 	fi
-	@echo "$(CC_BLUE)Done!$(CC_END)"
+	@echo "$(CC_BLUE)Clean done!$(CC_END)"
 
