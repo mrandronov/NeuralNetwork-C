@@ -16,6 +16,7 @@ INC_DIRS := $(shell find $(SRC_DIR)/* -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CFLAGS := -Wall
+CFLAGS += -O3
 
 # Color Formatting
 CC_GREEN := $(shell echo "\033[92;1m")
