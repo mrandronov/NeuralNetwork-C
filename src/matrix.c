@@ -9,10 +9,10 @@
 char*
 get_error_message( char const* operationString, char const* msg )
 {
-        size_t          bufSize = snprintf( NULL, 0, "Error: In %s(..): %s!\n.", operationString, msg ); 
+        size_t          bufSize = snprintf( NULL, 0, "In %s(..) %s!\n.", operationString, msg ); 
         char*           buf = ( char* ) malloc( bufSize + 1 );
 
-        sprintf( buf, "Error: In %s(...): %s!\n.", operationString, msg );
+        sprintf( buf, "In %s(...): %s!\n.", operationString, msg );
 
         return buf;
 }
@@ -24,8 +24,7 @@ void assert_msg( int condition, char *msg )
 		return;
 	}
 
-	printf( "Error:" );
-	printf( "\t%s\n", msg );
+        printf( "Error: %s\n", msg );
 	
         exit( 1 );
 }

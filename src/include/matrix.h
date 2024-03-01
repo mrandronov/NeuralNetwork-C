@@ -17,6 +17,9 @@ matrix_t*
 init_matrix( int rows, int cols );
 
 void
+print_matrix_size( matrix_t* m );
+
+void
 print_matrix( matrix_t* mat );
 
 void

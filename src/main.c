@@ -11,16 +11,24 @@ train(neural_network_t* net, data_set_t* training_data)
 {
         double                  cost = 0.0f;
         int                     ret = 0;
-        int                     m = 10;
+        int                     m = 30;
         int                     n = training_data->set_size;
-        int                     batch_size = n / m;
+
+        /*
+                I'm getting a lot of NaN and INFINITE values when
+                calculating weight and bias costs for larger 
+                batch sizes. Reducing the batch size for more
+                iterative learning.
+         */
+
+        int                     batch_size = 1000;
         matrix_t*               y = init_matrix( net->layers[ net->num_layers - 1 ]->rows, 1 );
 
         printf( "m: %d\n", m );
         printf( "Batch size: %d\n", batch_size );
         printf( "=====================================\n" );
 
-        for ( int i = 0; i < 10; i++ )
+        for ( int i = 0; i < m; i++ )
         {
                 clock_t                 start = clock();
                 clock_t                 diff;
@@ -57,6 +65,7 @@ train(neural_network_t* net, data_set_t* training_data)
 
                 adjust_weights( net );
                 adjust_biases( net );
+
                 clear_costs( net );
         }
 
