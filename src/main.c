@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "data_set.h"
 #include "neural_network.h"
@@ -21,6 +22,9 @@ train(neural_network_t* net, data_set_t* training_data)
 
         for ( int i = 0; i < 10; i++ )
         {
+                clock_t                 start = clock();
+                clock_t                 diff;
+
                 for ( int j = 0; j < batch_size; j++ )
                 {
                         ret = read_number( training_data, net );
@@ -43,7 +47,10 @@ train(neural_network_t* net, data_set_t* training_data)
                         y->data[ training_data->last_number ][ 0 ] = 0.0f;
                 }
 
-                printf( "Batch #%d | Cost = %f\n", i+1, ( cost / batch_size ) );
+                diff = clock() - start;
+                int                     msec = diff * 1000 / CLOCKS_PER_SEC;
+
+                printf( "Batch #%d | Cost = %f | Time taken = %d.%ds\n", i+1, ( cost / batch_size ), msec / 1000, msec % 1000 );
                 cost = 0.0;
 
                 average_cost( net, batch_size );
