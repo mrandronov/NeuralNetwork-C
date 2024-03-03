@@ -203,15 +203,13 @@ back_propagate( neural_network_t* net, matrix_t* y )
         /* Find initial bias cost. */
 
         net->biases_cost[ n - 2 ] = add_matrix( temp, net->biases_cost[ n - 2 ] );
-        
+
         /* Find initial layer cost ( cost for L - 1 ). */
 
-        matrix_t* new_layer_cost = dot_product( transpose( weights[ n - 2 ] ), temp );
-        layers_cost[ n - 3 ] = add_matrix( new_layer_cost, layers_cost[ n - 3 ] );
+        layers_cost[ n - 3 ] = dot_product( transpose( weights[ n - 2 ] ), temp );
 
         free( temp );
         free( new_weight_cost );
-        free( new_layer_cost );
 
         /*
                 Find the cost for the remaining weights, layers, and ( eventually ) biases.
@@ -224,7 +222,7 @@ back_propagate( neural_network_t* net, matrix_t* y )
                 matrix_t*               temp = hadamard_product(
                                                 scalar_multiply( subtract_matrix( a[ i + 1 ], layers_cost[ i ] ), 2 ),
                                                 derivative_activation( z[ i ] ) );
-                
+
                 matrix_t*               new_weight_cost = dot_product( temp, transpose( a[ i - 1 ] ) );
                 net->weights_cost[ i - 1 ] = add_matrix( new_weight_cost, net->weights_cost[ i - 1 ] );
 
@@ -234,12 +232,10 @@ back_propagate( neural_network_t* net, matrix_t* y )
 
                 /* Find layer cost. */
 
-                matrix_t*               new_layer_cost = dot_product( transpose( weights[ i ] ), temp );
-                layers_cost[ i ] = add_matrix( new_layer_cost, layers_cost[ i ] );
+                layers_cost[ i ] = dot_product( transpose( weights[ i ] ), temp );
 
                 free( temp );
                 free( new_weight_cost );
-                free( new_layer_cost );
         }
 
 }

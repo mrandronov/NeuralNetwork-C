@@ -11,7 +11,7 @@ train(neural_network_t* net, data_set_t* training_data)
 {
         double                  cost = 0.0f;
         int                     ret = 0;
-        int                     m = 30;
+        int                     m = 10;
         int                     n = training_data->set_size;
 
         /*

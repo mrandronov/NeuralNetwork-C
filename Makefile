@@ -34,10 +34,12 @@ all: $(OBJS)
 		mkdir ./data; \
 	fi
 	@if ! [ -f $(DATA_DIR)/$(TRAINING_FILE) ]; then \
-		echo "$(CC_YELLOW)WARNING:$(CC_END) Training data in $(DATA_DIR) folder is missing! Please include a .csv file called $(TRAINING_FILE) in the $(DATA_DIR) directory containing the training data for the network!"; \
+		echo "$(CC_YELLOW)WARNING:$(CC_END) Training data in $(DATA_DIR) folder is missing!"; \
+		echo "Please include a .csv file called $(TRAINING_FILE) with training data in the $(DATA_DIR) directory!"; \
 	fi
 	@if ! [ -f $(DATA_DIR)/$(TESTING_FILE) ]; then \
-		echo "$(CC_YELLOW)WARNING:$(CC_END) Testing data in $(DATA_DIR) folder is missing! Please include a .csv file called $(TESTING_FILE) in the $(DATA_DIR) directory containing the testing data for the network!"; \
+		echo "$(CC_YELLOW)WARNING:$(CC_END) Testing data in $(DATA_DIR) folder is missing!"; \
+		echo "Please include a .csv file called $(TESTING_FILE) with testing data in the $(DATA_DIR) directory!"; \
 	fi
 
 	$(CC) $(CFLAGS) $(INC_FLAGS) -o $(TARGET) $^
