@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MATRIX_H__
+#define __MATRIX_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,3 +59,4 @@ copy_matrix( matrix_t* mat );
 void
 free_matrix( matrix_t* mat );
 
+#endif /* __MATRIX_H__ */

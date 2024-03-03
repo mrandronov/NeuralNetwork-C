@@ -1,3 +1,6 @@
+#ifndef __DATA_SET_H__
+#define __DATA_SET_H__
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,3 +23,4 @@ read_number( data_set_t* data, neural_network_t* net );
 void
 free_data( data_set_t* data );
 
+#endif /* __DATA_SET_H__ */

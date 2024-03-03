@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __NEURAL_NETWORK_H__
+#define __NEURAL_NETWORK_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,3 +70,5 @@ print_stats( neural_network_t* net );
 
 void
 free_net( neural_network_t* net );
+
+#endif /* __NEURAL_NETWORK_H__ */
