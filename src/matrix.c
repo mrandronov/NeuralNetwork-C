@@ -9,7 +9,7 @@
 char*
 get_error_message( char const* operationString, char const* msg )
 {
-        size_t          bufSize = snprintf( NULL, 0, "In %s(..) %s!\n.", operationString, msg ); 
+        size_t          bufSize = snprintf( NULL, 0, "In %s(..) %s!\n.", operationString, msg );
         char*           buf = ( char* ) malloc( bufSize + 1 );
 
         sprintf( buf, "In %s(...): %s!\n.", operationString, msg );
@@ -31,7 +31,7 @@ void assert_msg( int condition, char *msg )
 
 
 double**
-alloc_matrix( int rows, int cols )
+alloc_matrix_data( int rows, int cols )
 {
         double**        arr = ( double ** ) malloc( rows * sizeof( double * ) );
 
@@ -51,7 +51,7 @@ init_matrix( int rows, int cols )
 
         mat->rows = rows;
         mat->cols = cols;
-        mat->data = alloc_matrix( rows, cols );
+        mat->data = alloc_matrix_data( rows, cols );
 
         return mat;
 }
@@ -74,21 +74,37 @@ print_matrix( matrix_t* mat )
 }
 
 double
+set_zero()
+{
+        return 0.0f;
+}
+
+double
 random_value()
 {
-        return ( double )( rand( )-( RAND_MAX/2 ) ) / ( double )( RAND_MAX );
+        return rand() / ( double ) RAND_MAX;
 }
 
 void
-fill_matrix( matrix_t* mat )
+fill_matrix( matrix_t* mat, fill_type_t fill_type )
 {
         srand( time( NULL ) );
+
+        double (*fill_func)();
+        if ( fill_type == ZEROS )
+        {
+                fill_func = set_zero;
+        }
+        else if ( fill_type == RANDOM )
+        {
+                fill_func = random_value;
+        }
 
         for ( int i = 0; i < mat->rows; i++ )
         {
                 for ( int j = 0; j < mat->cols; j++ )
                 {
-                        mat->data[ i ][ j ] = random_value();
+                        mat->data[ i ][ j ] = fill_func();
                 }
         }
 }
@@ -101,7 +117,7 @@ clear_matrix( matrix_t* mat )
         {
                 for ( int j = 0; j < mat->cols; j++ )
                 {
-                        mat->data[ i ][ j ] = 0; 
+                        mat->data[ i ][ j ] = 0;
                 }
         }
 }
@@ -153,17 +169,17 @@ char* get_operation_as_string( double ( *operation ) ( double, double ) )
  */
 
 matrix_t*
-operate( 
+operate(
         matrix_t* A,
         matrix_t* B,
         double ( *operation )( double, double ) )
 {
         char*           operationString = get_operation_as_string( operation );
 
-        assert_msg( ( A->rows != B->rows ), 
+        assert_msg( ( A->rows != B->rows ),
                 get_error_message( operationString, "A->rows != B->rows" ) );
 
-        assert_msg( ( A->cols != B->cols ), 
+        assert_msg( ( A->cols != B->cols ),
                 get_error_message( operationString, "A->cols != B->cols" ) );
 
         matrix_t*               result = init_matrix( A->rows, A->cols );
@@ -181,7 +197,7 @@ operate(
                                 printf( "Result is %f\n", result->data[ i ][ j ] );
                         }
 
-                        assert_msg( isnan( result->data[ i ][ j ] ), 
+                        assert_msg( isnan( result->data[ i ][ j ] ),
                                 get_error_message( operationString, "operation result is NAN!" ) );
 
                         assert_msg( !isfinite( result->data[ i ][ j ] ),
@@ -213,7 +229,7 @@ hadamard_product( matrix_t* A, matrix_t* B )
 matrix_t*
 dot_product( matrix_t* A, matrix_t* B )
 {
-        assert_msg( ( A->cols != B->rows ), 
+        assert_msg( ( A->cols != B->rows ),
                 "in dot_product( ): A->cols != B->rows" );
 
         matrix_t*               result = init_matrix( A->rows, B->cols );
@@ -222,16 +238,18 @@ dot_product( matrix_t* A, matrix_t* B )
         {
                 for ( int j = 0; j < result->cols; j++ )
                 {
+                        double sum = 0.0f;
                         for ( int k = 0; k < A->cols; k++ )
                         {
-                                result->data[ i ][ j ] += A->data[ i ][ k ] * B->data[ k ][ j ];
+                                sum += A->data[ i ][ k ] * B->data[ k ][ j ];
 
-                                assert_msg( isnan( result->data[ i ][ j ] ), 
+                                assert_msg( isnan( result->data[ i ][ j ] ),
                                         "in dot_product( ): operation result is NAN!" );
 
-                                assert_msg( !isfinite( result->data[ i ][ j ] ), 
+                                assert_msg( !isfinite( result->data[ i ][ j ] ),
                                         "in dot_product( ): operation result is infinite!" );
                         }
+                        result->data[ i ][ j ] = sum;
                 }
         }
 
@@ -239,7 +257,7 @@ dot_product( matrix_t* A, matrix_t* B )
 }
 
 matrix_t*
-transpose( matrix_t* A )
+transpose( matrix_t* A  )
 {
         matrix_t*               result = init_matrix( A->cols, A->rows );
 
@@ -258,6 +276,7 @@ matrix_t*
 scalar_multiply( matrix_t* A, double s )
 {
         matrix_t*               result = init_matrix( A->rows, A->cols );
+
         for ( int i = 0; i < A->rows; i++ )
         {
                 for ( int j = 0; j < A->cols; j++ )
@@ -268,8 +287,11 @@ scalar_multiply( matrix_t* A, double s )
                         {
                                 printf( "Uh oh, NaN or infinity detected! -> %f * %f == %f\n", A->data[ i ][ j ], s, ( A->data[ i ][ j ] * s ) );
                         }
-                        assert_msg( isnan( result->data[ i ][ j ] ), "in scalar_multiply( ): operation result is NAN!" );
-                        assert_msg( !isfinite( result->data[ i ][ j ] ), "in scalar_multiply( ): operation result is infinite!" );
+                        assert_msg( isnan( result->data[ i ][ j ] ),
+                                "in scalar_multiply( ): operation result is NAN!" );
+
+                        assert_msg( !isfinite( result->data[ i ][ j ] ),
+                                "in scalar_multiply( ): operation result is infinite!" );
                 }
         }
 
@@ -293,8 +315,11 @@ activation( matrix_t* A )
                 {
                         result->data[ i ][ j ] = sigmoid( A->data[ i ][ j ] );
 
-                        assert_msg( isnan( result->data[ i ][ j ] ), "in activation( ): operation result is NAN!" );
-                        assert_msg( !isfinite( result->data[ i ][ j ] ), "in activation( ): operation result is infinite!" );
+                        assert_msg( isnan( result->data[ i ][ j ] ),
+                                "in activation( ): operation result is NAN!" );
+
+                        assert_msg( !isfinite( result->data[ i ][ j ] ),
+                                "in activation( ): operation result is infinite!" );
                 }
         }
 
@@ -319,9 +344,11 @@ derivative_activation( matrix_t* A )
 
                         result->data[ i ][ j ] = num * ( 1 - sigmoid( A->data[ i ][ j ] ) );
 
-                        assert_msg( isnan( result->data[ i ][ j ] ), "in derivative_activation( ): operation result is NAN!" );
+                        assert_msg( isnan( result->data[ i ][ j ] ),
+                                "in derivative_activation( ): operation result is NAN!" );
 
-                        assert_msg( !isfinite( result->data[ i ][ j ] ), "in derivative_activation( ): operation result is infinite!" );
+                        assert_msg( !isfinite( result->data[ i ][ j ] ),
+                                "in derivative_activation( ): operation result is infinite!" );
                 }
         }
 
@@ -345,7 +372,7 @@ copy_matrix( matrix_t* mat )
 }
 
 void
-free_matrix( matrix_t* mat )
+matrix_free( matrix_t* mat )
 {
         clear_matrix( mat );
 

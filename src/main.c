@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 
 #include "data_set.h"
 #include "neural_network.h"
+#include "matrix.h"
 
 void
 train(neural_network_t* net, data_set_t* training_data)
@@ -13,26 +13,15 @@ train(neural_network_t* net, data_set_t* training_data)
         int                     ret = 0;
         int                     m = 10;
         int                     n = training_data->set_size;
-
-        /*
-                I'm getting a lot of NaN and INFINITE values when
-                calculating weight and bias costs for larger 
-                batch sizes. Reducing the batch size for more
-                iterative learning.
-         */
-
-        int                     batch_size = 1000;
+        int                     batch_size = n / m;
         matrix_t*               y = init_matrix( net->layers[ net->num_layers - 1 ]->rows, 1 );
 
         printf( "m: %d\n", m );
         printf( "Batch size: %d\n", batch_size );
         printf( "=====================================\n" );
 
-        for ( int i = 0; i < m; i++ )
+        for ( int i = 0; i < 10; i++ )
         {
-                clock_t                 start = clock();
-                clock_t                 diff;
-
                 for ( int j = 0; j < batch_size; j++ )
                 {
                         ret = read_number( training_data, net );
@@ -55,23 +44,19 @@ train(neural_network_t* net, data_set_t* training_data)
                         y->data[ training_data->last_number ][ 0 ] = 0.0f;
                 }
 
-                diff = clock() - start;
-                int                     msec = diff * 1000 / CLOCKS_PER_SEC;
-
-                printf( "Batch #%d | Cost = %f | Time taken = %d.%ds\n", i+1, ( cost / batch_size ), msec / 1000, msec % 1000 );
+                printf( "Batch #%d | Cost = %f\n", i+1, ( cost / batch_size ) );
                 cost = 0.0;
 
                 average_cost( net, batch_size );
 
                 adjust_weights( net );
                 adjust_biases( net );
-
                 clear_costs( net );
         }
 
         printf( "=====================================\n" );
         print_stats( net );
-        free_matrix( y );
+        matrix_free( y );
 }
 
 void
@@ -104,9 +89,6 @@ main( int argc, char** argv )
 
         printf("All structures have been initialized!\n");
 
-        fill_net( net1 );
-
-
         printf( "Training network...\n" );
 
         train( net1, training_data );
@@ -126,9 +108,9 @@ main( int argc, char** argv )
 
         print_stats( net1 );
 
-        free_net( net1 );
-        free_data( test_data );
-        free_data( training_data );
+        net_free( net1 );
+        data_set_free( test_data );
+        data_set_free( training_data );
 
         return 0;
 

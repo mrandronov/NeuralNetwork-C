@@ -33,12 +33,20 @@ init_net( )
         net->weights[ 1 ] = init_matrix( 16, 16 );
         net->weights[ 2 ] = init_matrix( 10, 16 );
 
+        fill_matrix( net->weights[ 0 ], RANDOM );
+        fill_matrix( net->weights[ 1 ], RANDOM );
+        fill_matrix( net->weights[ 2 ], RANDOM );
+
         printf("Network weights initialized successfully!\n");
 
         net->biases = ( matrix_t** ) malloc( ( net->num_layers-1 ) * sizeof( matrix_t* ) );
         net->biases[ 0 ] = init_matrix( 16, 1 );
         net->biases[ 1 ] = init_matrix( 16, 1 );
         net->biases[ 2 ] = init_matrix( 10, 1 );
+
+        fill_matrix( net->biases[ 0 ], RANDOM );
+        fill_matrix( net->biases[ 1 ], RANDOM );
+        fill_matrix( net->biases[ 2 ], RANDOM );
 
         printf("Network biases initialized successfully!\n");
 
@@ -73,18 +81,6 @@ init_net( )
         printf("Network intialization successful!\n");
 
         return net;
-}
-
-int
-fill_net( neural_network_t* net )
-{
-        for (int i = 0; i < net->num_layers-1; i++ )
-        {
-                fill_matrix( net->weights[ i ] );
-                fill_matrix( net->biases[ i ] );
-        }
-
-        return 0;
 }
 
 void
@@ -150,12 +146,11 @@ show_layer( neural_network_t* net, int layer )
         }
 }
 
-matrix_t*
-calculate_z( matrix_t* weights,
-        matrix_t* biases,
-        matrix_t* layer )
+/* DEBUG FUNCTION */
+void
+print_matrix_size( matrix_t* m )
 {
-        return add_matrix( dot_product( weights, layer ), biases );
+        printf( "rows: %d cols: %d\n", m->rows, m->cols );
 }
 
 int
@@ -163,21 +158,42 @@ feed_forward( neural_network_t* net )
 {
         for (int i = 0; i < net->num_layers - 1; i++ ) 
         {
-                net->z[ i ] = add_matrix( 
-                                dot_product( net->weights[ i ], net->layers[ i ] ), 
-                                net->biases[ i ] );
+                /*
+                        Calculate the "z" matrix, i.e, layer before applying
+                        the activation function.
+                 */
+                /* printf( "net->weights[ %d ] ", i ); */
+                /* print_matrix_size( net->weights[ i ] ); */
+                /* print_matrix( net->weights[ i ] ); */
+
+                /* printf( "net->layers[ %d ] ", i ); */
+                /* print_matrix_size( net->layers[ i ] ); */
+                /* print_matrix( net->layers[ i ] ); */
+
+                /* printf( "net->z[ %d ] ", i ); */
+                /* print_matrix_size( net->z[ i ] ); */
+
+                /* printf( "net->biases[ %d ]\n", i ); */
+                /* print_matrix_size( net->biases[ i ] ); */
+                /* print_matrix( net->biases[ i ] ); */
+
+                net->z[ i ] = dot_product( net->weights[ i ], net->layers[ i ] );
+
+                /* printf( "net->z[ %d ] before biases\n", i ); */
+                /* print_matrix( net->z[ i ] ); */
+
+                net->z[ i ] = add_matrix( net->biases[ i ], net->z[ i ] );
+
+                /* printf( "net->z[ %d ]\n", i ); */
+                /* print_matrix( net->z [ i ] ); */
 
                 net->layers[ i + 1 ] = activation( net->z[ i ] );
+
+                /* printf( "net->layers[ %d + 1 ]\n", i ); */
+                /* print_matrix( net->layers[ i + 1 ] ); */
         }
 
         return 0;
-}
-
-/* DEBUG FUNCTION */
-void
-print_matrix_size( matrix_t* m )
-{
-        printf( "rows: %d cols: %d\n", m->rows, m->cols );
 }
 
 void
@@ -189,55 +205,74 @@ back_propagate( neural_network_t* net, matrix_t* y )
         matrix_t**              layers_cost = net->layers_cost;
         int                     n = net->num_layers;
 
-        //printf( "beginning back propagation...\n" );
+        matrix_t*               cost_diff = subtract_matrix( a[ n - 1], y );
 
-        matrix_t*               temp = hadamard_product( 
-                                                scalar_multiply( subtract_matrix( a[ n - 1 ], y ), 2 ), 
-                                                derivative_activation( z[ n - 2 ] ) );
+        cost_diff = hadamard_product( scalar_multiply( cost_diff, 2 ),
+                        derivative_activation( z[ n - 2 ] ) );
 
         /* Find initial weight cost. */
 
-        matrix_t* new_weight_cost = dot_product( temp, transpose( a[ n - 2 ] ) );
+        matrix_t*               layers_transpose = transpose( a[ n - 2 ] );
+        matrix_t*               new_weight_cost = dot_product( cost_diff, layers_transpose );
+
         net->weights_cost[ n - 2 ] = add_matrix( new_weight_cost, net->weights_cost[ n - 2 ] );
 
         /* Find initial bias cost. */
 
-        net->biases_cost[ n - 2 ] = add_matrix( temp, net->biases_cost[ n - 2 ] );
+        net->biases_cost[ n - 2 ] = add_matrix( cost_diff, net->biases_cost[ n - 2 ] );
 
         /* Find initial layer cost ( cost for L - 1 ). */
 
-        layers_cost[ n - 3 ] = dot_product( transpose( weights[ n - 2 ] ), temp );
+        matrix_t*               weight_transpose = transpose( weights[ n - 2 ] );
+        layers_cost[ n - 3 ] = dot_product( weight_transpose, cost_diff );
 
-        free( temp );
-        free( new_weight_cost );
+        matrix_free( new_weight_cost );
+        matrix_free( layers_transpose );
+        matrix_free( weight_transpose );
+        matrix_free( cost_diff );
 
         /*
-                Find the cost for the remaining weights, layers, and ( eventually ) biases.
+                Find the cost for the remaining layers, weights, and biases.
          */
 
         for ( int i = n - 3; i > 0; i-- )
         {
                 /* Find weight cost. */
 
-                matrix_t*               temp = hadamard_product(
-                                                scalar_multiply( subtract_matrix( a[ i + 1 ], layers_cost[ i ] ), 2 ),
-                                                derivative_activation( z[ i ] ) );
+                matrix_t*               layers_cost_diff = subtract_matrix( a[ i + 1 ], layers_cost[ i ] );
+                matrix_t*               layers_scaled = scalar_multiply( layers_cost_diff, 2 );
 
-                matrix_t*               new_weight_cost = dot_product( temp, transpose( a[ i - 1 ] ) );
-                net->weights_cost[ i - 1 ] = add_matrix( new_weight_cost, net->weights_cost[ i - 1 ] );
+                layers_cost_diff = hadamard_product( layers_scaled, derivative_activation( z[ i ] ) );
+
+                matrix_t*               layers_transpose = transpose( a[ i - 1 ] );
+                matrix_t*               partial_weight_cost = dot_product( layers_cost_diff, layers_transpose );
+                matrix_t*               new_weight_cost = add_matrix( partial_weight_cost, net->weights_cost[ i - 1 ] );
+
+                matrix_free( net->weights_cost[ i - 1 ] );
+                net->weights_cost[ i - 1 ] = new_weight_cost;
 
                 /* Find bias cost. */
 
-                net->biases_cost[ i - 1 ] = add_matrix( temp, net->biases_cost[ i - 1] );
+                matrix_t*               new_biases_cost = add_matrix( layers_cost_diff, net->biases_cost[ i - 1 ] );
+
+                matrix_free( net->biases_cost[ i - 1 ] );
+                net->biases_cost[ i - 1 ] = new_biases_cost;
 
                 /* Find layer cost. */
 
-                layers_cost[ i ] = dot_product( transpose( weights[ i ] ), temp );
+                matrix_t*               weights_transpose = transpose( weights[ i ] );
+                matrix_t*               new_layers_cost = dot_product( weights_transpose, layers_cost_diff );
 
-                free( temp );
-                free( new_weight_cost );
+                matrix_free( layers_cost[ i ] );
+                layers_cost[ i ] = new_layers_cost; 
+
+                matrix_free( layers_cost_diff );
+                matrix_free( new_weight_cost );
+                matrix_free( layers_scaled );
+                matrix_free( layers_transpose );
+                matrix_free( partial_weight_cost );
+                matrix_free( weights_transpose );
         }
-
 }
 
 void
@@ -245,11 +280,15 @@ average_cost( neural_network_t* net, int batch_size )
 {
         double                  avg_factor = ( double ) 1.0 / ( double ) batch_size;
 
+        /* printf( "Huhhh...?\n" ); */
+        /* print_matrix( net->biases[ 1 ] ); */
         for ( int i = 0; i < net->num_layers-1; i++ )
         {
                 net->layers_cost[ i ] = scalar_multiply( net->layers_cost[ i ], avg_factor );
                 net->weights_cost[ i ] = scalar_multiply( net->weights_cost[ i ], avg_factor );
                 net->biases_cost[ i ] = scalar_multiply( net->biases_cost[ i ], avg_factor );
+                /* printf( "net->biases_cost[ %d ]\n", i ); */
+                /* print_matrix( net->biases_cost[ i ] ); */
         }
 }
 
@@ -307,6 +346,8 @@ network_output( neural_network_t* net )
         int                 max = 0;
         matrix_t*      output_layer = net->layers[ net->num_layers - 1 ];
 
+        /* printf( "output_layer\n" ); */
+        /* print_matrix( output_layer ); */
         for ( int i = 0; i < output_layer->rows; i++ )
         {
                 if ( output_layer->data[ i ][ 0 ] >= output_layer->data[ max ][ 0 ] )
@@ -347,13 +388,18 @@ print_stats( neural_network_t* net )
 }
 
 void
-free_net( neural_network_t* net )
+net_free( neural_network_t* net )
 {
-        free( net->weights );
-        free( net->biases );
-        free( net->z );
-        free( net->layers );
-        free( net->layers_cost );
+        for ( int i = 0; i < net->num_layers - 1; i++ )
+        {
+                matrix_free( net->layers[ i ] );
+                matrix_free( net->weights[ i ] );
+                matrix_free( net->biases[ i ] );
+                matrix_free( net->z[ i ] );
+                matrix_free( net->layers_cost[ i ] );
+        }
+        matrix_free( net->layers[ net->num_layers - 1 ] );
+
         free( net );
 }
 

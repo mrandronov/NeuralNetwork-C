@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef enum fill_type
+{
+        ZEROS,
+        RANDOM
+} fill_type_t;
+
 typedef struct
 {
         int             rows;
@@ -24,7 +30,7 @@ void
 print_matrix( matrix_t* mat );
 
 void
-fill_matrix( matrix_t* mat );
+fill_matrix( matrix_t* mat, fill_type_t fill_type );
 
 void
 clear_matrix( matrix_t* mat );
@@ -57,6 +63,6 @@ matrix_t*
 copy_matrix( matrix_t* mat );
 
 void
-free_matrix( matrix_t* mat );
+matrix_free( matrix_t* mat );
 
 #endif /* __MATRIX_H__ */

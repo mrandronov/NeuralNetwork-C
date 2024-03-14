@@ -26,9 +26,6 @@ typedef struct
 neural_network_t*
 init_net();
 
-int
-fill_net( neural_network_t* net );
-
 void
 peak_layer(neural_network_t* net, int layer );
 
@@ -69,6 +66,6 @@ void
 print_stats( neural_network_t* net );
 
 void
-free_net( neural_network_t* net );
+net_free( neural_network_t* net );
 
 #endif /* __NEURAL_NETWORK_H__ */

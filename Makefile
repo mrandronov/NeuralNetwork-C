@@ -9,7 +9,8 @@ DATA_DIR := ./data
 TRAINING_FILE := "mnist_train.csv"
 TESTING_FILE := "mnist_test.csv"
 
-SRCS := $(shell find $(SRC_DIR)/* -name '*.c')
+SRCS := $(SRC_DIR)/main.c
+SRCS += $(shell find $(SRC_DIR)/* -name '*.c' ! -name "main.c") 
 OBJS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SRCS:.c=.o))
 
 INC_DIRS := $(shell find $(SRC_DIR)/* -type d)
